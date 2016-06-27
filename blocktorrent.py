@@ -254,7 +254,7 @@ class BTUDPClient(threading.Thread):
         assert peer in self.peers.values()
         msg = BTMessage.MSG_REQUEST_TX + txhash
         # todo: make node stop sending requests after receiving requested tx from peer
-        print "Sending tx request for ", txhash
+        print "Requesting tx from %s for %s " % (str(peer), txhash)
         peer.send_message(msg)
     
     def send_tx(self, data, peer):
