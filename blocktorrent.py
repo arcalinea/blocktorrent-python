@@ -170,22 +170,10 @@ class BTUDPClient(threading.Thread):
                     self.recv_ack(m, peer)
 
                 if m.payload.startswith(BTMessage.MSG_TX):
-                    self.recv_tx(m.payload, peer) # args?
+                    self.recv_tx(m.payload, peer) 
                 
                 if m.payload.startswith(BTMessage.MSG_REQUEST_TX):
-                    self.send_tx(m.payload, peer) # args?
-
-                # need request_tx func. receive tx req and tx msg
-                # asking for specific tx? by txhash, or by blockhash and tx index,
-                    # or multiple tx by list of tx indices (offsets). 3 tx in row, 3tx [0,0,0]. would be bandwidth efficient
-                # need mempool for txs. dict of tx hashes to tx obj? tx obj from mininode, or other class we write on top
-                    # would want to add salted short hashes -- eventually
-                # receive req: check mempool. 
-                    # how would you check with req by offset or index? 
-                    # go into your block db, find that block, find hash that goes at that index, use that to get tx out of mempool
-                # Test: fill mempool with data from getblocktemplate, other nodes can req tx from it, they can fill their mempools, get complete blocks
-                    # although don't have logic for which parts of merkle tree to req....
-                    # write hardcoded thing that sends tx from one to another, check if its received at 2nd peer
+                    self.send_tx(m.payload, peer) 
 
                 if m.payload.startswith(BTMessage.MSG_REQUEST_NODES):
                     self.recv_node_request(m.payload, peer)
@@ -255,8 +243,13 @@ class BTUDPClient(threading.Thread):
             peer.inflight[hash].state.deserialize(s)
             debuglog('btnet', "New block state for %i: \n" % hash, peer.inflight[hash])
 
-    # todo: in long run will have blockhash and index or indices, ie level in block ( 5th and 7th tx in block X)
-    # two ways node can learn about tx, complete block from file/source or from over network. add to mempool
+    # todo: add request functionality. right now requests by hash
+        # add by blockhash and tx index or indices, ie level in block ( 5th and 7th tx in block X)
+        # or multiple tx by list of tx indices (offsets). 3 tx in row, 3tx [0,0,0]. would be bandwidth efficient
+    # todo: add salted short hashes to mempool
+    # todo: check mempool by offset or index
+        # go into your block db, find that block, find hash that goes at that index, use that to get tx out of mempool
+
     def send_tx_req(self, txhash, peer):
         assert peer in self.peers.values()
         msg = BTMessage.MSG_REQUEST_TX + txhash
@@ -273,8 +266,8 @@ class BTUDPClient(threading.Thread):
                 msg = BTMessage.MSG_TX + tx
                 peer.send_message(msg)
 
+    # two ways node learns about tx, complete block from file/source or from over network.
     # Receive txs from peers, check mempool for hash, add to block if not (identify block?)
-    # TXs come through as binary blobs, use mininode CTransaction to deserialize, calc hash
     def recv_tx(self, data, peer):
         ctx = mininode.CTransaction()
         tx = StringIO.StringIO(data.split(BTMessage.MSG_TX, 1)[1])
