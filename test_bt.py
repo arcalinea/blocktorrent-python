@@ -64,7 +64,7 @@ def run_test(nodes):
 
     print "Adding txs from blk to node[0]'s txmempool..."
     for tx in blk.vtx:
-        # Use sha256 and hash property?
+        # Use sha256 or hash property?
         # print "TX.hash", tx.hash 
         nodes[0].txmempool[tx.hash] = tx.serialize()
 
